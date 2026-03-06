@@ -1,26 +1,13 @@
-# =============================================================
-# render.yaml — VisionDX Full Deployment Blueprint
-# =============================================================
-# Deploy steps:
-#   1. Push this repo to GitHub
-#   2. Go to https://dashboard.render.com → New → Blueprint
-#   3. Select your repo → Render auto-reads this file
-#   4. Click "Apply" — both services deploy automatically
-# =============================================================
-
 services:
 
-  # ────────────────────────────────────────────────────────────
-  # SERVICE 1: Backend API  (FastAPI + Uvicorn)
-  # URL: https://visiondx-api.onrender.com
-  # ────────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────
+  # Backend API (FastAPI)
+  # ─────────────────────────────────────────
   - type: web
     name: visiondx-api
     runtime: python
-    region: singapore          # Singapore = lowest latency for India
-    plan: free                 # free = sleeps after 15min idle
-                               # upgrade to 'starter' ($7/mo) for always-on
-    pythonVersion: "3.11"
+    region: singapore
+    plan: free
 
     buildCommand: |
       set -e
@@ -32,11 +19,12 @@ services:
         poppler-utils \
         libgl1 \
         libglib2.0-0
+
       echo "=== Installing Python packages ==="
       pip install --upgrade pip setuptools wheel
       pip install -r requirements.txt
       pip install pyarrow
-      echo "=== Creating directories ==="
+
       mkdir -p /tmp/uploads /tmp/models
       echo "=== Build complete ==="
 
@@ -52,48 +40,58 @@ services:
     healthCheckPath: /api/v1/ping
 
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+
       - key: DATABASE_URL
         value: sqlite+aiosqlite:////tmp/visiondx.db
+
       - key: DATABASE_URL_SYNC
         value: sqlite:////tmp/visiondx.db
+
       - key: SECRET_KEY
-        generateValue: true          # Render auto-generates secure random value
+        generateValue: true
+
       - key: APP_ENV
         value: production
+
       - key: DEBUG
         value: "false"
+
       - key: ALLOWED_ORIGINS
-        value: "*"                   # Set to your frontend URL after first deploy
+        value: "*"
+
       - key: UPLOAD_DIR
         value: /tmp/uploads
+
       - key: MODEL_PATH
         value: /tmp/models/disease_predictor.pkl
+
       - key: TESSERACT_CMD
         value: /usr/bin/tesseract
+
       - key: MAX_UPLOAD_SIZE_MB
         value: "20"
+
       - key: LOG_LEVEL
         value: INFO
-      - key: REDIS_URL
-        value: redis://localhost:6379/0   # optional — not required for basic deployment
 
     autoDeploy: true
 
-  # ────────────────────────────────────────────────────────────
-  # SERVICE 2: Frontend  (Next.js)
-  # URL: https://visiondx-app.onrender.com
-  # ────────────────────────────────────────────────────────────
+
+  # ─────────────────────────────────────────
+  # Frontend (Next.js)
+  # ─────────────────────────────────────────
   - type: web
     name: visiondx-frontend
     runtime: node
     region: singapore
     plan: free
-    nodeVersion: "20"
 
     buildCommand: |
       set -e
       cd frontend
-      npm ci --prefer-offline
+      npm ci
       npm run build
       echo "=== Frontend build complete ==="
 
@@ -101,10 +99,15 @@ services:
       cd frontend && node server.js
 
     envVars:
+      - key: NODE_VERSION
+        value: 20
+
       - key: NEXT_PUBLIC_API_URL
         value: https://visiondx-api.onrender.com
+
       - key: NODE_ENV
         value: production
+
       - key: PORT
         value: "3000"
 
