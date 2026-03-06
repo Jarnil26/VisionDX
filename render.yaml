@@ -1,114 +1,130 @@
 services:
 
-  # ─────────────────────────────────────────
-  # Backend API (FastAPI)
-  # ─────────────────────────────────────────
-  - type: web
-    name: visiondx-api
-    runtime: python
-    region: singapore
-    plan: free
+# ============================================================
+# Backend API — FastAPI
+# ============================================================
+- type: web
+  name: visiondx-api
+  runtime: python
+  region: singapore
+  plan: free
 
-    buildCommand: |
-      set -e
-      echo "=== Installing system dependencies ==="
-      apt-get update -q && apt-get install -y --no-install-recommends \
-        tesseract-ocr \
-        tesseract-ocr-eng \
-        tesseract-ocr-hin \
-        poppler-utils \
-        libgl1 \
-        libglib2.0-0
+  buildCommand: |
+    set -e
 
-      echo "=== Installing Python packages ==="
-      pip install --upgrade pip setuptools wheel
-      pip install -r requirements.txt
-      pip install pyarrow
+    echo "=== Installing system dependencies ==="
+    apt-get update -q && apt-get install -y --no-install-recommends \
+      tesseract-ocr \
+      tesseract-ocr-eng \
+      tesseract-ocr-hin \
+      poppler-utils \
+      libgl1 \
+      libglib2.0-0
 
-      mkdir -p /tmp/uploads /tmp/models
-      echo "=== Build complete ==="
+    echo "=== Installing Python packages ==="
+    pip install --upgrade pip setuptools wheel
+    pip install -r requirements.txt
+    pip install pyarrow
 
-    startCommand: |
-      python -m visiondx.startup && \
-      uvicorn visiondx.main:app \
-        --host 0.0.0.0 \
-        --port $PORT \
-        --workers 1 \
-        --loop uvloop \
-        --log-level info
+    echo "=== Creating runtime directories ==="
+    mkdir -p /tmp/uploads
+    mkdir -p /tmp/models
 
-    healthCheckPath: /api/v1/ping
+    echo "=== Backend build complete ==="
 
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
+  startCommand: |
+    python -m visiondx.startup && \
+    uvicorn visiondx.main:app \
+      --host 0.0.0.0 \
+      --port $PORT \
+      --workers 1 \
+      --log-level info
 
-      - key: DATABASE_URL
-        value: sqlite+aiosqlite:////tmp/visiondx.db
+  healthCheckPath: /api/v1/ping
 
-      - key: DATABASE_URL_SYNC
-        value: sqlite:////tmp/visiondx.db
+  envVars:
+    - key: PYTHON_VERSION
+      value: 3.11.9
 
-      - key: SECRET_KEY
-        generateValue: true
+    - key: DATABASE_URL
+      value: sqlite+aiosqlite:////tmp/visiondx.db
 
-      - key: APP_ENV
-        value: production
+    - key: DATABASE_URL_SYNC
+      value: sqlite:////tmp/visiondx.db
 
-      - key: DEBUG
-        value: "false"
+    - key: SECRET_KEY
+      generateValue: true
 
-      - key: ALLOWED_ORIGINS
-        value: "*"
+    - key: APP_ENV
+      value: production
 
-      - key: UPLOAD_DIR
-        value: /tmp/uploads
+    - key: DEBUG
+      value: "false"
 
-      - key: MODEL_PATH
-        value: /tmp/models/disease_predictor.pkl
+    - key: ALLOWED_ORIGINS
+      value: "*"
 
-      - key: TESSERACT_CMD
-        value: /usr/bin/tesseract
+    - key: UPLOAD_DIR
+      value: /tmp/uploads
 
-      - key: MAX_UPLOAD_SIZE_MB
-        value: "20"
+    - key: MODEL_PATH
+      value: /tmp/models/disease_predictor.pkl
 
-      - key: LOG_LEVEL
-        value: INFO
+    - key: TESSERACT_CMD
+      value: /usr/bin/tesseract
 
-    autoDeploy: true
+    - key: MAX_UPLOAD_SIZE_MB
+      value: "20"
+
+    - key: LOG_LEVEL
+      value: INFO
+
+  autoDeploy: true
 
 
-  # ─────────────────────────────────────────
-  # Frontend (Next.js)
-  # ─────────────────────────────────────────
-  - type: web
-    name: visiondx-frontend
-    runtime: node
-    region: singapore
-    plan: free
+# ============================================================
+# Frontend — Next.js
+# ============================================================
+- type: web
+  name: visiondx-frontend
+  runtime: node
+  region: singapore
+  plan: free
 
-    buildCommand: |
-      set -e
-      cd frontend
-      npm ci
-      npm run build
-      echo "=== Frontend build complete ==="
+  buildCommand: |
+    set -e
 
-    startCommand: |
-      cd frontend && node server.js
+    echo "=== Installing frontend dependencies ==="
+    cd frontend
 
-    envVars:
-      - key: NODE_VERSION
-        value: 20
+    rm -rf node_modules
+    rm -f package-lock.json
 
-      - key: NEXT_PUBLIC_API_URL
-        value: https://visiondx-api.onrender.com
+    npm install
 
-      - key: NODE_ENV
-        value: production
+    echo "=== Installing TypeScript dependencies ==="
+    npm install --save-dev typescript @types/react @types/node
 
-      - key: PORT
-        value: "3000"
+    echo "=== Building Next.js app ==="
+    npm run build
 
-    autoDeploy: true
+    echo "=== Frontend build complete ==="
+
+  startCommand: |
+    cd frontend
+    npm start
+
+  envVars:
+    - key: NODE_VERSION
+      value: 20.11.1
+
+    - key: NEXT_PUBLIC_API_URL
+      value: https://visiondx-api.onrender.com
+
+    - key: NODE_ENV
+      value: production
+
+    - key: PORT
+      value: "3000"
+
+  autoDeploy: true
