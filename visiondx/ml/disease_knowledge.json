@@ -1,0 +1,351 @@
+{
+  "version": "2.0",
+  "description": "VisionDX Medical Knowledge Base — Dynamic Disease-Biomarker Relationships",
+  "diseases": {
+
+    "Diabetes Mellitus (Type 2)": {
+      "icd10": "E11", "category": "Metabolic", "severity_class": "chronic",
+      "biomarkers": [
+        {"name": "Glucose",      "direction": "HIGH", "threshold": 126,  "critical": 200, "weight": 0.90},
+        {"name": "HbA1c",        "direction": "HIGH", "threshold": 6.5,  "critical": 9.0, "weight": 0.95},
+        {"name": "Insulin",      "direction": "HIGH", "threshold": 25,   "critical": 60,  "weight": 0.60},
+        {"name": "Triglycerides","direction": "HIGH", "threshold": 150,  "critical": 500, "weight": 0.35}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Characterized by elevated fasting glucose or HbA1c above diabetic threshold."
+    },
+
+    "Pre-Diabetes / Impaired Glucose": {
+      "icd10": "R73.09", "category": "Metabolic", "severity_class": "risk",
+      "biomarkers": [
+        {"name": "Glucose", "direction": "HIGH", "threshold": 100, "critical": 126, "weight": 0.80},
+        {"name": "HbA1c",   "direction": "HIGH", "threshold": 5.7, "critical": 6.5, "weight": 0.85}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Blood glucose above normal but below diabetic threshold."
+    },
+
+    "Vitamin D Deficiency": {
+      "icd10": "E55.9", "category": "Nutritional", "severity_class": "deficiency",
+      "biomarkers": [
+        {"name": "Vitamin D", "direction": "LOW", "threshold": 30, "critical": 10, "weight": 1.0}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "25-OH Vitamin D levels below optimal range; common in India due to limited sun exposure in urban settings."
+    },
+
+    "Vitamin B12 Deficiency": {
+      "icd10": "E53.8", "category": "Nutritional", "severity_class": "deficiency",
+      "biomarkers": [
+        {"name": "Vitamin B12",   "direction": "LOW", "threshold": 187,  "critical": 100, "weight": 1.0},
+        {"name": "Homocysteine",  "direction": "HIGH", "threshold": 14.8, "critical": 30,  "weight": 0.55},
+        {"name": "MCV",           "direction": "HIGH", "threshold": 100,  "critical": 115, "weight": 0.40}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "B12 below 187 pg/mL; B12 is needed for nerve function and DNA synthesis."
+    },
+
+    "Folate Deficiency": {
+      "icd10": "E53.8", "category": "Nutritional", "severity_class": "deficiency",
+      "biomarkers": [
+        {"name": "Folate", "direction": "LOW", "threshold": 5.4,  "critical": 3.0, "weight": 1.0},
+        {"name": "MCV",    "direction": "HIGH", "threshold": 100, "critical": 115, "weight": 0.40}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Low serum folate — risk of megaloblastic anemia and neural tube defects."
+    },
+
+    "Vitamin B6 Deficiency": {
+      "icd10": "E53.1", "category": "Nutritional", "severity_class": "deficiency",
+      "biomarkers": [
+        {"name": "Vitamin B6", "direction": "LOW", "threshold": 5, "critical": 2, "weight": 1.0}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Low pyridoxine affecting neurotransmitter synthesis and homocysteine metabolism."
+    },
+
+    "Iron Deficiency Anemia": {
+      "icd10": "D50.9", "category": "Hematologic", "severity_class": "deficiency",
+      "biomarkers": [
+        {"name": "Hemoglobin",            "direction": "LOW",  "threshold": 12,   "critical": 7,   "weight": 0.85},
+        {"name": "Ferritin",              "direction": "LOW",  "threshold": 30,   "critical": 12,  "weight": 0.90},
+        {"name": "Serum Iron",            "direction": "LOW",  "threshold": 60,   "critical": 30,  "weight": 0.80},
+        {"name": "TIBC",                  "direction": "HIGH", "threshold": 400,  "critical": 450, "weight": 0.70},
+        {"name": "Transferrin Saturation","direction": "LOW",  "threshold": 20,   "critical": 10,  "weight": 0.75},
+        {"name": "MCV",                   "direction": "LOW",  "threshold": 80,   "critical": 70,  "weight": 0.65},
+        {"name": "RBC",                   "direction": "LOW",  "threshold": 4.0,  "critical": 3.0, "weight": 0.60}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Iron deficiency leading to reduced red blood cell production."
+    },
+
+    "Anemia (General)": {
+      "icd10": "D64.9", "category": "Hematologic", "severity_class": "deficiency",
+      "biomarkers": [
+        {"name": "Hemoglobin",  "direction": "LOW", "threshold": 12,  "critical": 7,   "weight": 1.0},
+        {"name": "Hematocrit",  "direction": "LOW", "threshold": 36,  "critical": 25,  "weight": 0.80},
+        {"name": "RBC",         "direction": "LOW", "threshold": 4.0, "critical": 3.0, "weight": 0.75}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Reduced hemoglobin or red blood cell count below normal range."
+    },
+
+    "Thyroid Hypothyroidism": {
+      "icd10": "E03.9", "category": "Endocrine", "severity_class": "chronic",
+      "biomarkers": [
+        {"name": "TSH",     "direction": "HIGH", "threshold": 4.5, "critical": 10.0, "weight": 0.90},
+        {"name": "Free T4", "direction": "LOW",  "threshold": 0.8, "critical": 0.5,  "weight": 0.85},
+        {"name": "T4",      "direction": "LOW",  "threshold": 4.5, "critical": 3.0,  "weight": 0.75},
+        {"name": "Free T3", "direction": "LOW",  "threshold": 2.3, "critical": 1.5,  "weight": 0.70}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Underactive thyroid — elevated TSH with low thyroid hormones."
+    },
+
+    "Thyroid Hyperthyroidism": {
+      "icd10": "E05.90", "category": "Endocrine", "severity_class": "chronic",
+      "biomarkers": [
+        {"name": "TSH",     "direction": "LOW",  "threshold": 0.4, "critical": 0.1,  "weight": 0.90},
+        {"name": "Free T4", "direction": "HIGH", "threshold": 1.8, "critical": 2.5,  "weight": 0.85},
+        {"name": "Free T3", "direction": "HIGH", "threshold": 4.2, "critical": 6.0,  "weight": 0.80}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Overactive thyroid — suppressed TSH with elevated thyroid hormones."
+    },
+
+    "Chronic Kidney Disease": {
+      "icd10": "N18.9", "category": "Renal", "severity_class": "chronic",
+      "biomarkers": [
+        {"name": "Creatinine", "direction": "HIGH", "threshold": 1.2,  "critical": 4.0,  "weight": 0.90},
+        {"name": "BUN",        "direction": "HIGH", "threshold": 20,   "critical": 60,   "weight": 0.80},
+        {"name": "Urea",       "direction": "HIGH", "threshold": 43,   "critical": 80,   "weight": 0.75},
+        {"name": "eGFR",       "direction": "LOW",  "threshold": 60,   "critical": 30,   "weight": 0.95},
+        {"name": "Uric Acid",  "direction": "HIGH", "threshold": 7.0,  "critical": 9.0,  "weight": 0.55},
+        {"name": "Potassium",  "direction": "HIGH", "threshold": 5.5,  "critical": 6.5,  "weight": 0.60}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Reduced kidney filtration indicated by elevated creatinine, BUN, or low eGFR."
+    },
+
+    "Kidney Function — Low BUN/Urea": {
+      "icd10": "N28.9", "category": "Renal", "severity_class": "risk",
+      "biomarkers": [
+        {"name": "BUN",  "direction": "LOW", "threshold": 9,    "critical": 5,    "weight": 0.80},
+        {"name": "Urea", "direction": "LOW", "threshold": 19.3, "critical": 10,   "weight": 0.80}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Below-normal BUN/Urea — may indicate reduced protein intake, liver issue, or overhydration."
+    },
+
+    "Acute Liver Disease": {
+      "icd10": "K72.0", "category": "Hepatic", "severity_class": "acute",
+      "biomarkers": [
+        {"name": "ALT",            "direction": "HIGH", "threshold": 40,  "critical": 200, "weight": 0.90},
+        {"name": "AST",            "direction": "HIGH", "threshold": 40,  "critical": 200, "weight": 0.85},
+        {"name": "Bilirubin Total","direction": "HIGH", "threshold": 1.2, "critical": 3.0, "weight": 0.80},
+        {"name": "ALP",            "direction": "HIGH", "threshold": 130, "critical": 400, "weight": 0.70},
+        {"name": "GGT",            "direction": "HIGH", "threshold": 60,  "critical": 200, "weight": 0.65}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Elevated liver enzymes indicate hepatocellular damage or cholestasis."
+    },
+
+    "Fatty Liver Disease (NAFLD)": {
+      "icd10": "K76.0", "category": "Hepatic", "severity_class": "chronic",
+      "biomarkers": [
+        {"name": "ALT",          "direction": "HIGH", "threshold": 40,  "critical": 120, "weight": 0.85},
+        {"name": "AST",          "direction": "HIGH", "threshold": 40,  "critical": 120, "weight": 0.80},
+        {"name": "Triglycerides","direction": "HIGH", "threshold": 150, "critical": 400, "weight": 0.75},
+        {"name": "Glucose",      "direction": "HIGH", "threshold": 100, "critical": 180, "weight": 0.50},
+        {"name": "Ferritin",     "direction": "HIGH", "threshold": 300, "critical": 600, "weight": 0.45}
+      ],
+      "logic": "ANY", "min_markers": 2,
+      "description": "Non-alcoholic fatty liver — typically elevated ALT with high triglycerides."
+    },
+
+    "Hyperlipidemia": {
+      "icd10": "E78.5", "category": "Metabolic", "severity_class": "chronic",
+      "biomarkers": [
+        {"name": "Total Cholesterol","direction": "HIGH", "threshold": 200, "critical": 300, "weight": 0.80},
+        {"name": "LDL Cholesterol",  "direction": "HIGH", "threshold": 130, "critical": 190, "weight": 0.90},
+        {"name": "Triglycerides",    "direction": "HIGH", "threshold": 150, "critical": 400, "weight": 0.85},
+        {"name": "HDL Cholesterol",  "direction": "LOW",  "threshold": 40,  "critical": 30,  "weight": 0.70}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Abnormal lipid levels increasing cardiovascular risk."
+    },
+
+    "Cardiovascular Risk — Elevated Homocysteine": {
+      "icd10": "E72.11", "category": "Cardiovascular", "severity_class": "risk",
+      "biomarkers": [
+        {"name": "Homocysteine",    "direction": "HIGH", "threshold": 14.8, "critical": 30,  "weight": 1.0},
+        {"name": "LDL Cholesterol", "direction": "HIGH", "threshold": 130,  "critical": 190, "weight": 0.50},
+        {"name": "hs-CRP",          "direction": "HIGH", "threshold": 3.0,  "critical": 10,  "weight": 0.55}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Elevated homocysteine is an independent risk factor for heart attack and stroke."
+    },
+
+    "Metabolic Syndrome": {
+      "icd10": "E88.81", "category": "Metabolic", "severity_class": "risk",
+      "biomarkers": [
+        {"name": "Glucose",          "direction": "HIGH", "threshold": 100, "critical": 180, "weight": 0.80},
+        {"name": "Triglycerides",    "direction": "HIGH", "threshold": 150, "critical": 400, "weight": 0.80},
+        {"name": "HDL Cholesterol",  "direction": "LOW",  "threshold": 40,  "critical": 30,  "weight": 0.70},
+        {"name": "Total Cholesterol","direction": "HIGH", "threshold": 200, "critical": 280, "weight": 0.60}
+      ],
+      "logic": "ANY", "min_markers": 2,
+      "description": "Cluster of conditions increasing risk of heart disease, diabetes, and stroke."
+    },
+
+    "Allergic Disease / Atopy": {
+      "icd10": "L20.9", "category": "Immunologic", "severity_class": "chronic",
+      "biomarkers": [
+        {"name": "IgE",          "direction": "HIGH", "threshold": 87,  "critical": 1000, "weight": 1.0},
+        {"name": "Eosinophils",  "direction": "HIGH", "threshold": 6,   "critical": 15,   "weight": 0.70}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Elevated IgE indicates allergic sensitization — eczema, asthma, food allergy, or rhinitis."
+    },
+
+    "Systemic Infection / Sepsis Risk": {
+      "icd10": "A41.9", "category": "Infectious", "severity_class": "acute",
+      "biomarkers": [
+        {"name": "WBC",         "direction": "HIGH", "threshold": 11,  "critical": 25,  "weight": 0.85},
+        {"name": "Neutrophils", "direction": "HIGH", "threshold": 75,  "critical": 90,  "weight": 0.75},
+        {"name": "CRP",         "direction": "HIGH", "threshold": 5,   "critical": 50,  "weight": 0.90},
+        {"name": "ESR",         "direction": "HIGH", "threshold": 20,  "critical": 80,  "weight": 0.60},
+        {"name": "Procalcitonin","direction": "HIGH","threshold": 0.5, "critical": 2.0, "weight": 0.95}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Elevated WBC and CRP indicate active bacterial or viral infection."
+    },
+
+    "Viral Infection / Leukopenia": {
+      "icd10": "D72.819", "category": "Infectious", "severity_class": "acute",
+      "biomarkers": [
+        {"name": "WBC",        "direction": "LOW",  "threshold": 4.0, "critical": 2.0,  "weight": 0.85},
+        {"name": "Lymphocytes","direction": "HIGH", "threshold": 40,  "critical": 60,   "weight": 0.70},
+        {"name": "Platelets",  "direction": "LOW",  "threshold": 150, "critical": 70,   "weight": 0.60}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Low WBC with high lymphocytes may indicate viral infection."
+    },
+
+    "Inflammation / Autoimmune Risk": {
+      "icd10": "M35.9", "category": "Immunologic", "severity_class": "chronic",
+      "biomarkers": [
+        {"name": "CRP",        "direction": "HIGH", "threshold": 5,  "critical": 30,  "weight": 0.85},
+        {"name": "ESR",        "direction": "HIGH", "threshold": 20, "critical": 80,  "weight": 0.75},
+        {"name": "hs-CRP",     "direction": "HIGH", "threshold": 3,  "critical": 10,  "weight": 0.90},
+        {"name": "Ferritin",   "direction": "HIGH", "threshold": 300,"critical": 800, "weight": 0.55}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Elevated inflammatory markers suggest chronic or autoimmune inflammation."
+    },
+
+    "Platelet Disorder (Thrombocytopenia)": {
+      "icd10": "D69.6", "category": "Hematologic", "severity_class": "acute",
+      "biomarkers": [
+        {"name": "Platelets", "direction": "LOW", "threshold": 150, "critical": 50, "weight": 1.0},
+        {"name": "MPV",       "direction": "HIGH","threshold": 10.3,"critical": 14, "weight": 0.60}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Low platelet count — bleeding risk; elevated MPV indicates larger, more active platelets."
+    },
+
+    "Platelet Disorder (Thrombocytosis)": {
+      "icd10": "D75.1", "category": "Hematologic", "severity_class": "chronic",
+      "biomarkers": [
+        {"name": "Platelets", "direction": "HIGH", "threshold": 450, "critical": 800, "weight": 1.0}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Elevated platelet count — risk of blood clots."
+    },
+
+    "MPV Elevation (Cardiovascular Risk)": {
+      "icd10": "R79.1", "category": "Cardiovascular", "severity_class": "risk",
+      "biomarkers": [
+        {"name": "MPV", "direction": "HIGH", "threshold": 10.3, "critical": 13, "weight": 1.0}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "High Mean Platelet Volume correlates with increased cardiovascular events and platelet activation."
+    },
+
+    "Gout / Hyperuricemia": {
+      "icd10": "M10.9", "category": "Metabolic", "severity_class": "chronic",
+      "biomarkers": [
+        {"name": "Uric Acid", "direction": "HIGH", "threshold": 7.0, "critical": 10.0, "weight": 1.0}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Elevated uric acid — gout risk and associated with kidney stones."
+    },
+
+    "Hyponatremia (Low Sodium)": {
+      "icd10": "E87.1", "category": "Electrolyte", "severity_class": "acute",
+      "biomarkers": [
+        {"name": "Sodium", "direction": "LOW", "threshold": 135, "critical": 120, "weight": 1.0}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Low sodium — can cause confusion, seizures, and hypovolemia."
+    },
+
+    "Hypocalcemia (Low Calcium)": {
+      "icd10": "E83.51", "category": "Electrolyte", "severity_class": "acute",
+      "biomarkers": [
+        {"name": "Calcium", "direction": "LOW", "threshold": 8.5, "critical": 7.0, "weight": 1.0}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Low calcium — risk of tetany, muscle cramps, and cardiac arrhythmias."
+    },
+
+    "Hypokalemia (Low Potassium)": {
+      "icd10": "E87.6", "category": "Electrolyte", "severity_class": "acute",
+      "biomarkers": [
+        {"name": "Potassium", "direction": "LOW", "threshold": 3.5, "critical": 2.5, "weight": 1.0}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Low potassium — risk of cardiac arrhythmias and muscle weakness."
+    },
+
+    "Polycythemia": {
+      "icd10": "D75.1", "category": "Hematologic", "severity_class": "chronic",
+      "biomarkers": [
+        {"name": "Hemoglobin", "direction": "HIGH", "threshold": 17.5,"critical": 20,   "weight": 0.90},
+        {"name": "RBC",        "direction": "HIGH", "threshold": 5.5, "critical": 6.5,  "weight": 0.85},
+        {"name": "Hematocrit", "direction": "HIGH", "threshold": 52,  "critical": 60,   "weight": 0.85}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Abnormally high red blood cell mass — risk of blood clots."
+    },
+
+    "Protein Deficiency / Malnutrition": {
+      "icd10": "E46", "category": "Nutritional", "severity_class": "chronic",
+      "biomarkers": [
+        {"name": "Total Protein","direction": "LOW", "threshold": 6.3, "critical": 5.0, "weight": 0.85},
+        {"name": "Albumin",      "direction": "LOW", "threshold": 3.5, "critical": 2.5, "weight": 0.90}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Low serum protein/albumin suggests malnutrition or liver synthetic failure."
+    },
+
+    "Pancreatic Inflammation": {
+      "icd10": "K85.9", "category": "Pancreatic", "severity_class": "acute",
+      "biomarkers": [
+        {"name": "Amylase", "direction": "HIGH", "threshold": 100, "critical": 300, "weight": 0.90},
+        {"name": "Lipase",  "direction": "HIGH", "threshold": 160, "critical": 500, "weight": 0.95}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Elevated pancreatic enzymes indicate acute or chronic pancreatitis."
+    },
+
+    "Hypothyroidism — Subclinical": {
+      "icd10": "E02", "category": "Endocrine", "severity_class": "risk",
+      "biomarkers": [
+        {"name": "TSH", "direction": "HIGH", "threshold": 4.5, "critical": 10.0, "weight": 1.0}
+      ],
+      "logic": "ANY", "min_markers": 1,
+      "description": "Mildly elevated TSH with normal free T4 — early thyroid dysfunction."
+    }
+  }
+}

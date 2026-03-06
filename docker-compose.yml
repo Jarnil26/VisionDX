@@ -1,0 +1,99 @@
+version: "3.9"
+
+services:
+  # ── FastAPI Backend ──────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: visiondx_api
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./uploads:/app/uploads
+      - ./visiondx/ml/models:/app/visiondx/ml/models
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - visiondx_net
+    command: uvicorn visiondx.main:app --host 0.0.0.0 --port 8000 --workers 2
+
+  # ── Celery Worker ────────────────────────────────────────────────────────────
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: visiondx_worker
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./uploads:/app/uploads
+      - ./visiondx/ml/models:/app/visiondx/ml/models
+    depends_on:
+      - api
+      - redis
+    networks:
+      - visiondx_net
+    command: celery -A visiondx.worker worker --loglevel=info --concurrency=2
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: visiondx_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: visiondx
+      POSTGRES_USER: visiondx
+      POSTGRES_PASSWORD: visiondx_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - visiondx_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U visiondx"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: visiondx_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - visiondx_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Nginx Reverse Proxy ──────────────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: visiondx_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+    networks:
+      - visiondx_net
+
+volumes:
+  postgres_data:
+
+networks:
+  visiondx_net:
+    driver: bridge

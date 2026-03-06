@@ -1,0 +1,50 @@
+# VisionDX — Gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Uploads / ML artifacts (large files)
+uploads/
+visiondx/ml/models/
+visiondx/ml/training_data.csv
+visiondx/ml/biomarker_knowledge.parquet
+visiondx/ml/biomarker_knowledge_sample.csv
+
+# Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.vercel/
+frontend/.env.local
+
+# Database
+*.db
+*.sqlite
+
+# Docker
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
