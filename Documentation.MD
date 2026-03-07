@@ -13,6 +13,8 @@
 10. [Technology Stack](#technology-stack)  
 11. [Security & Privacy](#security--privacy)  
 12. [Future Enhancements](#future-enhancements)  
+13. [Testing & QA](docs/testing_walkthrough.md)  
+14. [Deployment Guide](docs/deployment_guide.md)  
 
 ---
 
