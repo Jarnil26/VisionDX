@@ -6,7 +6,7 @@ Orchestrates the full pipeline:
 """
 from __future__ import annotations
 
-import os
+import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -75,9 +75,19 @@ async def process_report(
     predictions: list[PredictionOut] = predictor.predict(all_params)
 
     # 5. Persist patient
+    age_val = None
+    if parsed.age:
+        try:
+            # Handle "25", "25.0", "25Y" etc.
+            age_match = re.search(r"(\d+)", parsed.age)
+            if age_match:
+                age_val = int(age_match.group(1))
+        except (ValueError, TypeError):
+            pass
+
     patient = Patient(
         name=parsed.patient_name or "Unknown",
-        age=int(parsed.age) if parsed.age and parsed.age.isdigit() else None,
+        age=age_val,
         gender=parsed.gender,
     )
     db.add(patient)
@@ -193,15 +203,29 @@ async def build_report_analysis(
     report: Report,
 ) -> ReportAnalysisResponse:
     """Build structured analysis response."""
-    from visiondx.database.schemas import ParameterOut
+    from visiondx.database.schemas import ParameterOut, PredictionOut, ParsedParameter
 
     params = [ParameterOut.model_validate(p) for p in report.parameters]
     abnormal = [p for p in params if p.status != "NORMAL"]
     predictions = [
         PredictionOut.model_validate(pred) for pred in report.predictions
     ]
+    
+    # Convert SQLAlchemy models to Pydantic for the highlight engine
+    pydantic_params = [
+        ParsedParameter(
+            name=p.name,
+            raw_name=p.raw_name,
+            value=p.value,
+            raw_value=p.raw_value,
+            unit=p.unit,
+            reference_range=p.reference_range,
+            status=p.status,
+        ) for p in report.parameters
+    ]
+    
     summary = _highlighter.generate_summary(
-        report.parameters, predictions  # type: ignore[arg-type]
+        pydantic_params, predictions
     )
     return ReportAnalysisResponse(
         report_id=report.report_id,
@@ -215,13 +239,27 @@ async def build_report_analysis(
 
 async def build_full_report(report: Report, base_url: str = "") -> FullReportResponse:
     """Build full doctor-facing report response."""
-    from visiondx.database.schemas import ParameterOut, PatientOut
+    from visiondx.database.schemas import ParameterOut, PatientOut, PredictionOut, ParsedParameter
 
     params = [ParameterOut.model_validate(p) for p in report.parameters]
     predictions = [PredictionOut.model_validate(pred) for pred in report.predictions]
     patient = PatientOut.model_validate(report.patient) if report.patient else None
+
+    # Convert SQLAlchemy models to Pydantic for the highlight engine
+    pydantic_params = [
+        ParsedParameter(
+            name=p.name,
+            raw_name=p.raw_name,
+            value=p.value,
+            raw_value=p.raw_value,
+            unit=p.unit,
+            reference_range=p.reference_range,
+            status=p.status,
+        ) for p in report.parameters
+    ]
+    
     summary = _highlighter.generate_summary(
-        report.parameters, predictions  # type: ignore[arg-type]
+        pydantic_params, predictions
     )
     pdf_url = (
         f"{base_url}/pdf/{report.report_id}"

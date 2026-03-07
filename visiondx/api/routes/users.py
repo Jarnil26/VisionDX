@@ -51,12 +51,12 @@ def _create_access_token(app_user_id: str) -> str:
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=settings.access_token_expire_minutes
     )
-    payload = {"sub": app_user_id, "type": "app_user", "exp": expire}
+    payload = {"sub": app_user_id, "type": "app_user", "role": "user", "exp": expire}
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
 
 async def get_current_app_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(_http_bearer),
+    credentials: HTTPAuthorizationCredentials = Depends(_http_bearer),
     db: AsyncSession = Depends(get_db),
 ) -> AppUser:
     if not credentials or not credentials.credentials:
@@ -71,22 +71,42 @@ async def get_current_app_user(
             settings.secret_key,
             algorithms=[settings.algorithm],
         )
-        if payload.get("type") != "app_user":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token type",
-            )
-        user_id: str = payload.get("sub", "")
+        # Fallback to 'sub' as primary ID
+        user_id = payload.get("sub") or payload.get("user_id")
         if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise HTTPException(status_code=401, detail="Invalid token: missing subject")
+            
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # Try lookup by UUID first (tokens from /users/login)
     result = await db.execute(select(AppUser).where(AppUser.id == user_id))
     user = result.scalar_one_or_none()
+    
+    # If not found, try lookup by email (tokens from /auth/login store email in sub)
+    if user is None and "@" in user_id:
+        result = await db.execute(select(AppUser).where(AppUser.email == user_id))
+        user = result.scalar_one_or_none()
+        
+        # If still no AppUser but the email exists as a User (doctor/lab), auto-create an AppUser
+        if user is None:
+            from visiondx.database.models import User as StaffUser
+            staff_result = await db.execute(select(StaffUser).where(StaffUser.email == user_id))
+            staff_user = staff_result.scalar_one_or_none()
+            if staff_user:
+                user = AppUser(
+                    email=staff_user.email,
+                    hashed_password=staff_user.hashed_password,
+                    full_name=staff_user.full_name,
+                    is_active=staff_user.is_active,
+                )
+                db.add(user)
+                await db.flush()
+    
     if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -150,6 +170,42 @@ async def login(
         raise HTTPException(status_code=403, detail="Account is inactive")
     token = _create_access_token(user.id)
     return TokenResponse(access_token=token)
+
+
+from visiondx.database.schemas import RefreshTokenRequest
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(
+    body: RefreshTokenRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Refresh an expired AppUser token without requiring a new login."""
+    try:
+        payload = jwt.decode(
+            body.token,
+            settings.secret_key,
+            algorithms=[settings.algorithm],
+            options={"verify_exp": False}
+        )
+        user_id = payload.get("sub") or payload.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        
+        # Try by ID first, then by email
+        result = await db.execute(select(AppUser).where(AppUser.id == user_id))
+        user = result.scalar_one_or_none()
+        
+        if user is None and "@" in user_id:
+            result = await db.execute(select(AppUser).where(AppUser.email == user_id))
+            user = result.scalar_one_or_none()
+        
+        if not user or not user.is_active:
+            raise HTTPException(status_code=401, detail="User not found or inactive")
+            
+        token = _create_access_token(user.id)
+        return TokenResponse(access_token=token)
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 
 @router.get("/me", response_model=AppUserOut)

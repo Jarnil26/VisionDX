@@ -24,16 +24,14 @@ from visiondx.database.schemas import LoginRequest, RegisterRequest, TokenRespon
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 _pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
-_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login/token")
-
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+_security = HTTPBearer()
 
 def hash_password(password: str) -> str:
     return _pwd_ctx.hash(password)
 
-
 def verify_password(plain: str, hashed: str) -> bool:
     return _pwd_ctx.verify(plain, hashed)
-
 
 def create_access_token(data: dict) -> str:
     payload = data.copy()
@@ -43,9 +41,8 @@ def create_access_token(data: dict) -> str:
     payload["exp"] = expire
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
-
 async def get_current_user(
-    token: str = Depends(_oauth2_scheme),
+    auth: HTTPAuthorizationCredentials = Depends(_security),
     db: AsyncSession = Depends(get_db),
 ) -> User:
     credentials_exc = HTTPException(
@@ -54,7 +51,7 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        payload = jwt.decode(auth.credentials, settings.secret_key, algorithms=[settings.algorithm])
         email: str = payload.get("sub", "")
         if not email:
             raise credentials_exc
@@ -98,6 +95,33 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         )
     token = create_access_token({"sub": user.email, "role": user.role})
     return TokenResponse(access_token=token)
+
+
+from visiondx.database.schemas import RefreshTokenRequest
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(body: RefreshTokenRequest, db: AsyncSession = Depends(get_db)):
+    """Refresh an expired User token."""
+    try:
+        payload = jwt.decode(
+            body.token,
+            settings.secret_key,
+            algorithms=[settings.algorithm],
+            options={"verify_exp": False}
+        )
+        email = payload.get("sub") or payload.get("email")
+        if not email:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+            
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
+        if not user or not user.is_active:
+            raise HTTPException(status_code=401, detail="User not found or inactive")
+            
+        token = create_access_token({"sub": user.email, "role": user.role})
+        return TokenResponse(access_token=token)
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 
 @router.post("/login/token", response_model=TokenResponse, include_in_schema=False)

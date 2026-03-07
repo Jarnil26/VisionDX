@@ -132,7 +132,7 @@ async def analyze_text(
     if body.patient_age:   parsed.age          = str(body.patient_age)
     if body.patient_gender: parsed.gender       = body.patient_gender
 
-    params   = detector.detect(parsed.parameters)
+    params, abnormal_list = detector.detect(parsed.parameters)
     preds    = predictor.predict(params)
 
     abnormal = [p for p in params if p.status != "NORMAL"]

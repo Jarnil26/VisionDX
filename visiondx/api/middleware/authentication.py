@@ -49,7 +49,7 @@ def create_access_token(
     expire = datetime.now(timezone.utc) + expires_delta
     
     to_encode = {
-        "user_id": user_id,
+        "sub": user_id,
         "email": email,
         "role": role,
         "exp": expire,
@@ -67,32 +67,17 @@ def create_access_token(
 
 # ── Token Validation ───────────────────────────────────────────────────────────
 
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+security = HTTPBearer()
+
 async def get_current_user(
-    authorization: Optional[str] = Header(None),
+    auth: HTTPAuthorizationCredentials = Depends(security),
 ) -> CurrentUser:
     """
-    Extract and validate JWT token from Authorization header.
+    Extract and validate JWT token from Bearer token.
     Returns current user or raises 401.
     """
-    if not authorization:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization header required",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Parse "Bearer <token>"
-    try:
-        scheme, token = authorization.split()
-        if scheme.lower() != "bearer":
-            raise ValueError("Not Bearer token")
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization header format",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
+    token = auth.credentials
     try:
         payload = jwt.decode(
             token,
@@ -100,7 +85,7 @@ async def get_current_user(
             algorithms=[settings.algorithm],
         )
         
-        user_id: str = payload.get("user_id")
+        user_id: str = payload.get("sub")
         email: str = payload.get("email")
         role: str = payload.get("role", "user")
         

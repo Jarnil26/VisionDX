@@ -16,6 +16,10 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class RefreshTokenRequest(BaseModel):
+    token: str
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
