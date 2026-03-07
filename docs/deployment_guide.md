@@ -21,7 +21,7 @@ The blueprint sets up many variables automatically, but you should verify these 
 | `DATABASE_URL_SYNC` | `postgresql://user:pass@host/db` |
 | `SECRET_KEY` | Auto-generated (or set a strong random string) |
 | `APP_ENV` | `production` |
-| `ALLOWED_ORIGINS` | `https://visiondx-frontend-vdzv.onrender.com` |
+| `ALLOWED_ORIGINS` | `https://visiondx-frontend-vdzv-qomz.onrender.com` |
 
 ## 📦 Step 3: Persistence (Recommended)
 By default, the app uses a temporary SQLite database (`/tmp/visiondx.db`). **Data will be lost on every redeploy.**
@@ -30,12 +30,12 @@ By default, the app uses a temporary SQLite database (`/tmp/visiondx.db`). **Dat
 1. In Render, click **New +** -> **PostgreSQL**.
 2. Create the database.
 3. Copy the **Internal Database URL**.
-4. Paste it into the `DATABASE_URL` and `DATABASE_URL_SYNC` environment variables of your `visiondx-api-vdzv` service.
+4. Paste it into the `DATABASE_URL` and `DATABASE_URL_SYNC` environment variables of your `visiondx-api-vdzv-qomz` service.
 
 ## 🧪 Step 4: Final Verification
 1. Once both services are "Live" in Render:
-2. Visit your API URL: `https://visiondx-api-vdzv.onrender.com/health` (should return healthy).
-3. Visit your Frontend URL: `https://visiondx-frontend-vdzv.onrender.com`.
+2. Visit your API URL: `https://visiondx-api-vdzv-qomz.onrender.com/health` (should return healthy).
+3. Visit your Frontend URL: `https://visiondx-frontend-vdzv-qomz.onrender.com`.
 4. Try logging in or uploading a report to test the connection.
 
 ## 🛠️ Troubleshooting

@@ -4,7 +4,7 @@ services:
 # Backend API — FastAPI
 # ============================================================
 - type: web
-  name: visiondx-api-vdzv
+  name: visiondx-api-vdzv-qomz
   runtime: python
   region: singapore
   plan: free
@@ -62,7 +62,7 @@ services:
       value: "false"
 
     - key: ALLOWED_ORIGINS
-      value: "https://visiondx-frontend-vdzv.onrender.com"
+      value: "https://visiondx-frontend-vdzv-qomz.onrender.com"
 
     - key: UPLOAD_DIR
       value: /tmp/uploads
@@ -86,7 +86,7 @@ services:
 # Frontend — Next.js
 # ============================================================
 - type: web
-  name: visiondx-frontend-vdzv
+  name: visiondx-frontend-vdzv-qomz
   runtime: node
   region: singapore
   plan: free
@@ -108,7 +108,7 @@ services:
       value: 20.11.1
 
     - key: NEXT_PUBLIC_API_URL
-      value: https://visiondx-api-vdzv.onrender.com
+      value: https://visiondx-api-vdzv-qomz.onrender.com
 
     - key: NODE_ENV
       value: production
