@@ -149,6 +149,17 @@ app.include_router(developer.router)
 
 # ── Core Endpoints ────────────────────────────────────────────────────────────
 
+@app.get("/", tags=["System"], include_in_schema=False)
+async def root():
+    """Welcome message and redirect clues."""
+    return {
+        "message": f"Welcome to {settings.app_name} API",
+        "docs": "/docs",
+        "health": "/health",
+        "status": "online"
+    }
+
+
 @app.get("/health", tags=["System"])
 async def health_check():
     """System health check endpoint."""
