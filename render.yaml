@@ -108,7 +108,7 @@ services:
       value: 20.11.1
 
     - key: NEXT_PUBLIC_API_URL
-      value: https://visiondx-api.onrender.com
+      value: https://visiondx-api-vdzv.onrender.com
 
     - key: NODE_ENV
       value: production
