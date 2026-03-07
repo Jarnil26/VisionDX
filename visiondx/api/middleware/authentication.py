@@ -7,7 +7,7 @@ Supports Bearer token and X-API-Key patterns.
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-import jwt
+from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status, Header
 from pydantic import BaseModel
 
@@ -124,7 +124,7 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    except jwt.JWTError as e:
+    except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token",
