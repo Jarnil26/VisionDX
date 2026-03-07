@@ -77,10 +77,17 @@ class DiseasePredictor:
         return cls._instance
 
     def _load(self) -> None:
-        model_path = _MODEL_DIR / "disease_predictor.pkl"
-        le_path    = _MODEL_DIR / "label_encoder.pkl"
+        import os
+        model_env = os.getenv("MODEL_PATH")
+        if model_env:
+            model_path = Path(model_env)
+            le_path    = model_path.parent / "label_encoder.pkl"
+        else:
+            model_path = _MODEL_DIR / "disease_predictor.pkl"
+            le_path    = _MODEL_DIR / "label_encoder.pkl"
+
         if not model_path.exists():
-            logger.warning("ML model not found. Run `python -m visiondx.ml.train_model` to train.")
+            logger.warning(f"ML model not found at {model_path}. Run `python -m visiondx.ml.train_model` to train.")
             return
         try:
             with open(model_path, "rb") as f:

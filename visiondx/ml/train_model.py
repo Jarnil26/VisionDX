@@ -15,6 +15,7 @@ Outputs:
 """
 from __future__ import annotations
 
+import os
 import json
 import pickle
 from pathlib import Path
@@ -37,7 +38,11 @@ except ImportError:
     logger.warning("XGBoost not available, using RandomForest only")
 
 DATA_PATH = Path(__file__).parent / "training_data.csv"
-MODEL_DIR = Path(__file__).parent / "models"
+MODEL_PATH_ENV = os.getenv("MODEL_PATH")
+if MODEL_PATH_ENV:
+    MODEL_DIR = Path(MODEL_PATH_ENV).parent
+else:
+    MODEL_DIR = Path(__file__).parent / "models"
 
 # 20-feature set — must match generate_data.py and predictor.py
 FEATURES = [

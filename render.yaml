@@ -40,7 +40,7 @@ services:
       --workers 1 \
       --log-level info
 
-  healthCheckPath: /api/v1/ping
+  healthCheckPath: /health
 
   envVars:
     - key: PYTHON_VERSION
@@ -62,7 +62,7 @@ services:
       value: "false"
 
     - key: ALLOWED_ORIGINS
-      value: "https://visiondx-frontend-vdzv-qomz.onrender.com"
+      value: "*"
 
     - key: UPLOAD_DIR
       value: /tmp/uploads
@@ -78,42 +78,5 @@ services:
 
     - key: LOG_LEVEL
       value: INFO
-
-  autoDeploy: true
-
-
-# ============================================================
-# Frontend — Next.js
-# ============================================================
-- type: web
-  name: visiondx-frontend-vdzv-qomz
-  runtime: node
-  region: singapore
-  plan: free
-
-  buildCommand: |
-    set -e
-    echo "=== Installing frontend dependencies ==="
-    cd frontend
-    npm install --include=dev
-    echo "=== Building Next.js app ==="
-    npm run build
-    echo "=== Frontend build complete ==="
-
-  startCommand: |
-    cd frontend && npm start
-
-  envVars:
-    - key: NODE_VERSION
-      value: 20.11.1
-
-    - key: NEXT_PUBLIC_API_URL
-      value: https://visiondx-api-vdzv-qomz.onrender.com
-
-    - key: NODE_ENV
-      value: production
-
-    - key: PORT
-      value: "3000"
 
   autoDeploy: true
