@@ -50,4 +50,5 @@ async def create_tables() -> None:
     """Create all tables on startup (dev mode). Use Alembic for production."""
     async with engine.begin() as conn:
         from visiondx.database import models  # noqa: F401
+        from visiondx.database import api_key_models  # noqa: F401
         await conn.run_sync(Base.metadata.create_all)

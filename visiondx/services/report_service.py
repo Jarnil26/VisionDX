@@ -52,6 +52,7 @@ async def save_upload(file_bytes: bytes, original_filename: str) -> str:
 async def process_report(
     pdf_path: str,
     db: AsyncSession,
+    app_user_id: str | None = None,
 ) -> Report:
     """
     Full pipeline: OCR → parse → detect → predict → persist.
@@ -85,6 +86,7 @@ async def process_report(
     # 6. Persist report
     report = Report(
         report_id=parsed.report_id,
+        app_user_id=app_user_id,
         patient_id=patient.id,
         pdf_path=pdf_path,
         raw_text=raw_text[:10000],  # truncate for DB storage
@@ -135,6 +137,56 @@ async def get_report_by_id(report_id: str, db: AsyncSession) -> Report | None:
         .where(Report.report_id == report_id)
     )
     return result.scalar_one_or_none()
+
+
+async def list_reports_by_app_user(
+    app_user_id: str, db: AsyncSession, limit: int = 100
+) -> list[Report]:
+    """List reports belonging to an app user."""
+    result = await db.execute(
+        select(Report)
+        .options(
+            selectinload(Report.patient),
+            selectinload(Report.parameters),
+            selectinload(Report.predictions),
+        )
+        .where(Report.app_user_id == app_user_id)
+        .order_by(Report.created_at.desc())
+        .limit(limit)
+    )
+    return list(result.scalars().all())
+
+
+async def list_reports_with_abnormal(
+    db: AsyncSession, limit: int = 50
+) -> list[tuple[Report, int]]:
+    """
+    List reports that have at least one abnormal parameter (LOW/HIGH).
+    Returns list of (Report, abnormal_count) sorted by abnormal_count desc.
+    """
+    from sqlalchemy import func
+    from visiondx.database.models import Parameter
+
+    # Subquery: report_id -> count of abnormal params
+    abnormal_counts = (
+        select(Parameter.report_id, func.count(Parameter.id).label("abnormal_count"))
+        .where(Parameter.status.in_(["LOW", "HIGH"]))
+        .group_by(Parameter.report_id)
+        .subquery()
+    )
+    result = await db.execute(
+        select(Report, abnormal_counts.c.abnormal_count)
+        .join(abnormal_counts, Report.id == abnormal_counts.c.report_id)
+        .options(
+            selectinload(Report.patient),
+            selectinload(Report.parameters),
+            selectinload(Report.predictions),
+            selectinload(Report.app_user),
+        )
+        .order_by(abnormal_counts.c.abnormal_count.desc())
+        .limit(limit)
+    )
+    return [(row[0], row[1]) for row in result.all()]
 
 
 async def build_report_analysis(

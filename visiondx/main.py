@@ -2,6 +2,7 @@
 VisionDX — FastAPI Application Entry Point
 
 Registers all routers, configures middleware, lifecycle events.
+Production-grade error handling, authentication, and logging.
 """
 from __future__ import annotations
 
@@ -9,16 +10,23 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
+import time
 
 from visiondx.config import settings
 from visiondx.database.connection import create_tables
-from visiondx.api.routes import auth, reports, doctor, developer, public_api
+from visiondx.api.routes import auth, reports, doctor, developer, public_api, users, labs, follow_ups, chat
 from visiondx.database.api_key_models import ApiDeveloper, ApiKey
 from visiondx.ml.predictor import DiseasePredictor
+
+# ── Middleware Imports ─────────────────────────────────────────────────────────
+from visiondx.api.middleware import (
+    setup_logging,
+    register_error_handlers,
+)
 
 
 @asynccontextmanager
@@ -83,10 +91,56 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# ── Request Timing Middleware ─────────────────────────────────────────────────
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    """Add request processing time to response headers."""
+    start_time = time.time()
+    
+    # Log incoming request
+    logger.debug(
+        f"→ {request.method} {request.url.path}",
+        method=request.method,
+        path=request.url.path,
+    )
+    
+    response = await call_next(request)
+    
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    
+    # Log response
+    log_level = "warning" if response.status_code >= 400 else "debug"
+    logger_func = getattr(logger, log_level)
+    logger_func(
+        f"← {response.status_code} {request.url.path} ({process_time:.3f}s)",
+        status_code=response.status_code,
+        method=request.method,
+        path=request.url.path,
+        duration=process_time,
+    )
+    
+    return response
+
+
+# ── Error Handlers & Logging ──────────────────────────────────────────────────
+register_error_handlers(app)
+setup_logging()
+
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth.router)
 app.include_router(reports.router)
 app.include_router(doctor.router)
+# App users (patients): register, login, profile, my reports, upload
+app.include_router(users.router)
+# Labs: list labs, bookings; Lab API for report submission
+app.include_router(labs.router)
+app.include_router(labs.lab_api_router)
+# Weekly & monthly follow-ups
+app.include_router(follow_ups.router)
+# AI Chat Doctor
+app.include_router(chat.router)
 # Public API (v1) — requires X-API-Key header
 app.include_router(public_api.router)
 # Developer portal routes — signup, key management

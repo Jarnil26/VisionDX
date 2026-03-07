@@ -1,7 +1,8 @@
 """
-VisionDX — Doctor Report Lookup Routes
+VisionDX — Doctor Dashboard & Report Lookup
 
-GET /doctor/report/{report_id}   Full report view (patient + params + predictions + PDF)
+GET /doctor/abnormal-reports   — List reports with abnormal data (prioritized)
+GET /doctor/report/{report_id} — Full report view (patient + params + predictions + PDF)
 """
 from __future__ import annotations
 
@@ -9,10 +10,34 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from visiondx.database.connection import get_db
-from visiondx.database.schemas import FullReportResponse
+from visiondx.database.schemas import AbnormalReportItem, FullReportResponse
 from visiondx.services import report_service
 
-router = APIRouter(prefix="/doctor", tags=["Doctor Lookup"])
+router = APIRouter(prefix="/doctor", tags=["Doctor Dashboard"])
+
+
+@router.get("/abnormal-reports", response_model=list[AbnormalReportItem])
+async def list_abnormal_reports(
+    db: AsyncSession = Depends(get_db),
+    limit: int = 50,
+):
+    """
+    List reports that have abnormal parameters (LOW/HIGH), sorted by severity (abnormal count).
+    Helps doctors prioritize patients requiring attention.
+    """
+    rows = await report_service.list_reports_with_abnormal(db, limit=limit)
+    return [
+        AbnormalReportItem(
+            report_id=r.report_id,
+            abnormal_count=count,
+            patient_name=r.patient.name if r.patient else None,
+            app_user_id=r.app_user_id,
+            report_date=r.report_date,
+            lab_name=r.lab_name,
+            created_at=r.created_at,
+        )
+        for r, count in rows
+    ]
 
 
 @router.get("/report/{report_id}", response_model=FullReportResponse)

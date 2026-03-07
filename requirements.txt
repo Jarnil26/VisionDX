@@ -38,6 +38,9 @@ pyarrow==16.1.0
 # ─── NLP ──────────────────────────────────────────────────────
 rapidfuzz==3.9.0
 
+# ─── Voice (optional, for /chat/voice) ─────────────────────────
+# pip install SpeechRecognition  # uses Google STT; supports all languages
+
 # ─── Config / Utilities ───────────────────────────────────────
 pydantic-settings==2.2.1
 python-dotenv==1.0.1
