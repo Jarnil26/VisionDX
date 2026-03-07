@@ -95,7 +95,7 @@ services:
     set -e
     echo "=== Installing frontend dependencies ==="
     cd frontend
-    npm install
+    npm install --include=dev
     echo "=== Building Next.js app ==="
     npm run build
     echo "=== Frontend build complete ==="
@@ -117,3 +117,14 @@ services:
       value: "3000"
 
   autoDeploy: true
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+  ▲ Next.js 14.2.3
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+It looks like you're trying to use TypeScript but do not have the required package(s) installed.
+Please install typescript, @types/react, and @types/node by running:
+	npm install --save-dev typescript @types/react @types/node
+If you are not trying to use TypeScript, please remove the tsconfig.json file from your package root (and any TypeScript files in your pages directory).
+==> Build failed 😞
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
